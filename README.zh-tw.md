@@ -16,8 +16,7 @@ llumen 是一個輕量級、可自行託管的 LLM 聊天應用程式（前端 +
 
 TODO: 影片連結
 
-![新聊天](./screenshots/new-chat.png)
-![聊天室](./screenshots/chatroom.png)
+![windows](./screenshots/windows.png)
 ![設定](./screenshots/setting.png)
 
 ## 快速入門

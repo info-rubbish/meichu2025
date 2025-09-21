@@ -18,8 +18,7 @@ llumen is a lightweight, self-hostable LLM chat application (frontend + backend)
 
 TODO: video link
 
-![new chat](./screenshots/new-chat.png)
-![chatroom](./screenshots/chatroom.png)
+![windows](./screenshots/windows.png)
 ![setting](./screenshots/setting.png)
 
 ## Quickstart
