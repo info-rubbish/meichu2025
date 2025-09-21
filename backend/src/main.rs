@@ -13,6 +13,9 @@ use std::sync::Arc;
 use crate::{openrouter::Openrouter, prompts::PromptEnv, tools::ToolStore};
 use anyhow::Context;
 use axum::{Router, middleware};
+use betrayer::{
+    Icon, Menu, MenuItem, TrayEvent, TrayIcon, TrayIconBuilder, winit::WinitTrayIconBuilderExt,
+};
 use dotenv::var;
 use entity::prelude::*;
 use middlewares::cache_control::CacheControlLayer;
@@ -26,6 +29,12 @@ use tower_http::services::{ServeDir, ServeFile};
 use tracing::Level;
 use tracing_subscriber::{filter, layer::SubscriberExt, util::SubscriberInitExt};
 use utils::password_hash::Hasher;
+use winit::{
+    application::ApplicationHandler,
+    event::{Event, WindowEvent},
+    event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
+    window::WindowId,
+};
 
 #[cfg(feature = "dev")]
 use tower_http::cors::{AllowHeaders, AllowMethods, AllowOrigin, CorsLayer};
@@ -88,7 +97,7 @@ async fn main() {
     tools.add_tool::<tools::mail::SendMail>().unwrap();
     tools.add_tool::<tools::mail::GetMailContent>().unwrap();
     tools.add_tool::<tools::rss::RssSearch>().unwrap();
-    
+
     let state = Arc::new(AppState {
         conn,
         key,
@@ -140,5 +149,63 @@ async fn main() {
     );
 
     let tcp = TcpListener::bind(bind_addr).await.unwrap();
-    axum::serve(tcp, app).await.unwrap();
+    tokio::spawn(async {
+        axum::serve(tcp, app).await.unwrap();
+    });
+    tray().unwrap();
+}
+
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+enum Signal {
+    Profile(u32),
+    Open,
+    Quit,
+}
+
+fn tray() -> anyhow::Result<()> {
+    let event_loop = EventLoop::with_user_event().build()?;
+
+    let tray = TrayIconBuilder::new()
+        .with_icon(Icon::from_png_bytes(include_bytes!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../frontend/static/favicon-96x96.png"
+        )))?)
+        .with_tooltip("Demo System Tray")
+        .with_menu(build_menu())
+        .build_event_loop(&event_loop, |e| Some(e))?;
+
+    event_loop.set_control_flow(ControlFlow::Wait);
+    event_loop.run_app(&mut App { tray })?;
+    Ok(())
+}
+
+struct App {
+    tray: TrayIcon<Signal>,
+}
+
+impl ApplicationHandler<TrayEvent<Signal>> for App {
+    fn resumed(&mut self, _event_loop: &ActiveEventLoop) {}
+    fn user_event(&mut self, event_loop: &ActiveEventLoop, event: TrayEvent<Signal>) {
+        if let TrayEvent::Menu(signal) = event {
+            match signal {
+                Signal::Profile(i) => {
+                    self.tray.set_tooltip(format!("Active Profile: Hi"));
+                    self.tray.set_menu(build_menu());
+                }
+                Signal::Open => {}
+                Signal::Quit => event_loop.exit(),
+            }
+        }
+    }
+    fn window_event(
+        &mut self,
+        _event_loop: &ActiveEventLoop,
+        _window_id: WindowId,
+        _event: WindowEvent,
+    ) {
+    }
+}
+
+fn build_menu() -> Menu<Signal> {
+    Menu::new([MenuItem::button("Quit", Signal::Quit)])
 }

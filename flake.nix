@@ -13,7 +13,7 @@
       in
       {
         defaultPackage = naersk-lib.buildPackage ./.;
-        devShell = with pkgs; mkShell {
+        devShell = with pkgs; mkShell rec {
           buildInputs = [
             cargo
             rustc
@@ -22,6 +22,10 @@
             pkg-config
             openssl
             nodejs-slim
+            libxkbcommon
+            libGL
+            # WINIT_UNIX_BACKEND=wayland
+            wayland
           ];
           nativeBuildInputs = [
             rustfmt
@@ -31,6 +35,7 @@
             typeshare
           ];
           RUST_SRC_PATH = rustPlatform.rustLibSrc;
+          LD_LIBRARY_PATH = "${lib.makeLibraryPath buildInputs}";
         };
       }
     );

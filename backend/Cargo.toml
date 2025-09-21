@@ -37,6 +37,8 @@ schemars = "1.0.4"
 redb = "2.6.3"
 regex = "1.11.2"
 serde-xml-rs = "0.8.1"
+betrayer = { version = "0.4.1", features = ["winit"] }
+winit = "0.30.12"
 
 [dependencies.tracing]
 version = "0.1"
