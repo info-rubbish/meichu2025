@@ -151,61 +151,62 @@ async fn main() {
     let tcp = TcpListener::bind(bind_addr).await.unwrap();
     tokio::spawn(async {
         axum::serve(tcp, app).await.unwrap();
-    });
-    tray().unwrap();
+    })
+    .await;
+    // tray().unwrap();
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
-enum Signal {
-    Profile(u32),
-    Open,
-    Quit,
-}
+// #[derive(Debug, Copy, Clone, Eq, PartialEq)]
+// enum Signal {
+//     Profile(u32),
+//     Open,
+//     Quit,
+// }
 
-fn tray() -> anyhow::Result<()> {
-    let event_loop = EventLoop::with_user_event().build()?;
+// fn tray() -> anyhow::Result<()> {
+//     let event_loop = EventLoop::with_user_event().build()?;
 
-    let tray = TrayIconBuilder::new()
-        .with_icon(Icon::from_png_bytes(include_bytes!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../frontend/static/favicon-96x96.png"
-        )))?)
-        .with_tooltip("Demo System Tray")
-        .with_menu(build_menu())
-        .build_event_loop(&event_loop, |e| Some(e))?;
+//     let tray = TrayIconBuilder::new()
+//         .with_icon(Icon::from_png_bytes(include_bytes!(concat!(
+//             env!("CARGO_MANIFEST_DIR"),
+//             "/../frontend/static/favicon-96x96.png"
+//         )))?)
+//         .with_tooltip("Demo System Tray")
+//         .with_menu(build_menu())
+//         .build_event_loop(&event_loop, |e| Some(e))?;
 
-    event_loop.set_control_flow(ControlFlow::Wait);
-    event_loop.run_app(&mut App { tray })?;
-    Ok(())
-}
+//     event_loop.set_control_flow(ControlFlow::Wait);
+//     event_loop.run_app(&mut App { tray })?;
+//     Ok(())
+// }
 
-struct App {
-    tray: TrayIcon<Signal>,
-}
+// struct App {
+//     tray: TrayIcon<Signal>,
+// }
 
-impl ApplicationHandler<TrayEvent<Signal>> for App {
-    fn resumed(&mut self, _event_loop: &ActiveEventLoop) {}
-    fn user_event(&mut self, event_loop: &ActiveEventLoop, event: TrayEvent<Signal>) {
-        if let TrayEvent::Menu(signal) = event {
-            match signal {
-                Signal::Profile(i) => {
-                    self.tray.set_tooltip(format!("Active Profile: Hi"));
-                    self.tray.set_menu(build_menu());
-                }
-                Signal::Open => {}
-                Signal::Quit => event_loop.exit(),
-            }
-        }
-    }
-    fn window_event(
-        &mut self,
-        _event_loop: &ActiveEventLoop,
-        _window_id: WindowId,
-        _event: WindowEvent,
-    ) {
-    }
-}
+// impl ApplicationHandler<TrayEvent<Signal>> for App {
+//     fn resumed(&mut self, _event_loop: &ActiveEventLoop) {}
+//     fn user_event(&mut self, event_loop: &ActiveEventLoop, event: TrayEvent<Signal>) {
+//         if let TrayEvent::Menu(signal) = event {
+//             match signal {
+//                 Signal::Profile(i) => {
+//                     self.tray.set_tooltip(format!("Active Profile: Hi"));
+//                     self.tray.set_menu(build_menu());
+//                 }
+//                 Signal::Open => {}
+//                 Signal::Quit => event_loop.exit(),
+//             }
+//         }
+//     }
+//     fn window_event(
+//         &mut self,
+//         _event_loop: &ActiveEventLoop,
+//         _window_id: WindowId,
+//         _event: WindowEvent,
+//     ) {
+//     }
+// }
 
-fn build_menu() -> Menu<Signal> {
-    Menu::new([MenuItem::button("Quit", Signal::Quit)])
-}
+// fn build_menu() -> Menu<Signal> {
+//     Menu::new([MenuItem::button("Quit", Signal::Quit)])
+// }
